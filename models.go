@@ -70,3 +70,11 @@ func databaseFollowToFollow(dbFollow database.Follow) Follow {
 		UpdatedAt: dbFollow.UpdatedAt,
 	}
 }
+
+func databaseFollowsToFollows(dbFollows []database.Follow) []Follow {
+	follows := make([]Follow, 0, len(dbFollows))
+	for _, dbFeed := range dbFollows {
+		follows = append(follows, databaseFollowToFollow(dbFeed))
+	}
+	return follows
+}

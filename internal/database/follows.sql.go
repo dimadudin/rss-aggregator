@@ -46,12 +46,17 @@ func (q *Queries) CreateFollow(ctx context.Context, arg CreateFollowParams) (Fol
 }
 
 const deleteFollow = `-- name: DeleteFollow :one
-DELETE FROM follows WHERE id = $1
+DELETE FROM follows WHERE id = $1 AND user_id = $2
 RETURNING id, user_id, feed_id, created_at, updated_at
 `
 
-func (q *Queries) DeleteFollow(ctx context.Context, id uuid.UUID) (Follow, error) {
-	row := q.db.QueryRowContext(ctx, deleteFollow, id)
+type DeleteFollowParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) DeleteFollow(ctx context.Context, arg DeleteFollowParams) (Follow, error) {
+	row := q.db.QueryRowContext(ctx, deleteFollow, arg.ID, arg.UserID)
 	var i Follow
 	err := row.Scan(
 		&i.ID,
@@ -61,4 +66,37 @@ func (q *Queries) DeleteFollow(ctx context.Context, id uuid.UUID) (Follow, error
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getFollows = `-- name: GetFollows :many
+SELECT id, user_id, feed_id, created_at, updated_at FROM follows WHERE user_id = $1
+`
+
+func (q *Queries) GetFollows(ctx context.Context, userID uuid.UUID) ([]Follow, error) {
+	rows, err := q.db.QueryContext(ctx, getFollows, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Follow
+	for rows.Next() {
+		var i Follow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.FeedID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

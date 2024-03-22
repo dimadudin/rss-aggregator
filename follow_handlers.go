@@ -39,6 +39,17 @@ func (cfg *config) handleFollowFeed(w http.ResponseWriter, r *http.Request, user
 	respondWithJSON(w, http.StatusCreated, databaseFollowToFollow(follow))
 }
 
+func (cfg *config) handleGetFollows(w http.ResponseWriter, r *http.Request, user database.User) {
+	follows, err := cfg.DB.GetFollows(r.Context(), user.ID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError,
+			fmt.Sprintf("error fetching follows: %s", err.Error()))
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, databaseFollowsToFollows(follows))
+}
+
 func (cfg *config) handleUnfollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	feedID, err := uuid.Parse(r.PathValue("followID"))
 	if err != nil {
@@ -47,7 +58,10 @@ func (cfg *config) handleUnfollowFeed(w http.ResponseWriter, r *http.Request, us
 		return
 	}
 
-	follow, err := cfg.DB.DeleteFollow(r.Context(), feedID)
+	follow, err := cfg.DB.DeleteFollow(r.Context(), database.DeleteFollowParams{
+		ID:     feedID,
+		UserID: user.ID,
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError,
 			fmt.Sprintf("error unfollowing feed: %s", err.Error()))
