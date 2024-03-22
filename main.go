@@ -36,6 +36,8 @@ func main() {
 	mux.Handle("GET /v1/users", cfg.mwAuth(cfg.handleGetUser))
 
 	mux.Handle("POST /v1/feeds", cfg.mwAuth(cfg.handleCreateFeed))
+	mux.HandleFunc("GET /v1/feeds", cfg.handleGetFeeds)
+
 	corsMux := mwAddCors(mux)
 
 	server := http.Server{Addr: ":" + port, Handler: corsMux}
