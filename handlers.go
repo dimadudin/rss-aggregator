@@ -45,7 +45,7 @@ func (cfg *config) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, user)
+	respondWithJSON(w, http.StatusCreated, databaseUserToUser(user))
 }
 
 func (cfg *config) handleGetUser(w http.ResponseWriter, r *http.Request) {
@@ -57,9 +57,9 @@ func (cfg *config) handleGetUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := cfg.DB.GetUserByApiKey(r.Context(), apiKey)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("couldn't get user", err.Error()))
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("couldn't get user: %s", err.Error()))
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, user)
+	respondWithJSON(w, http.StatusOK, databaseUserToUser(user))
 }
