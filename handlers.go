@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/dimadudin/rss-aggregator/internal/database"
 	"github.com/google/uuid"
 )
 
@@ -12,34 +13,35 @@ func handleReady(w http.ResponseWriter, r *http.Request) {
 	response := struct {
 		Status string `json:"status"`
 	}{Status: "ok"}
-	RespondWithJSON(w, http.StatusOK, response)
+	respondWithJSON(w, http.StatusOK, response)
 }
 
 func handleError(w http.ResponseWriter, r *http.Request) {
-	RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+	respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 }
 
 func (cfg *config) handleCreateUser(w http.ResponseWriter, r *http.Request) {
-	request := struct {
+	rParams := struct {
 		Name string `json:"name"`
 	}{}
+
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&request)
+	err := decoder.Decode(&rParams)
 	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	response := struct {
-		Id        uuid.UUID `json:"id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"update_at"`
-		Name      string    `json:"name"`
-	}{
-		Id:        uuid.New(),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		Name:      request.Name,
+
+	user, err := cfg.DB.CreateUser(r.Context(), database.CreateUserParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		Name:      rParams.Name,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	cfg.DB.CreateUser()
-	RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+
+	respondWithJSON(w, http.StatusCreated, user)
 }
