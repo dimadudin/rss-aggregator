@@ -29,11 +29,14 @@ func main() {
 	cfg := config{DB: dbQueries}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /v1/users", cfg.handleCreateUser)
-	mux.HandleFunc("GET /v1/users", cfg.handleGetUser)
 	mux.HandleFunc("GET /v1/readiness", handleReady)
 	mux.HandleFunc("GET /v1/error", handleError)
-	corsMux := MwAddCors(mux)
+
+	mux.HandleFunc("POST /v1/users", cfg.handleCreateUser)
+	mux.Handle("GET /v1/users", cfg.mwAuth(cfg.handleGetUser))
+
+	mux.Handle("POST /v1/feeds", cfg.mwAuth(cfg.handleCreateFeed))
+	corsMux := mwAddCors(mux)
 
 	server := http.Server{Addr: ":" + port, Handler: corsMux}
 	log.Fatal(server.ListenAndServe())
