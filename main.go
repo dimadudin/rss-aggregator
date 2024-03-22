@@ -22,7 +22,7 @@ func main() {
 
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		panic(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	dbQueries := database.New(db)

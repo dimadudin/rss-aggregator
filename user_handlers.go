@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -17,7 +18,8 @@ func (cfg *config) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&rParams)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError,
+			fmt.Sprintf("error decoding JSON: %s", err.Error()))
 		return
 	}
 
@@ -28,7 +30,8 @@ func (cfg *config) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		Name:      rParams.Name,
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError,
+			fmt.Sprintf("error creating user: %s", err.Error()))
 		return
 	}
 
