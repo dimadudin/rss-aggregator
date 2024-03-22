@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/dimadudin/rss-aggregator/internal/auth"
 	"github.com/dimadudin/rss-aggregator/internal/database"
 	"github.com/google/uuid"
 )
@@ -44,4 +46,20 @@ func (cfg *config) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusCreated, user)
+}
+
+func (cfg *config) handleGetUser(w http.ResponseWriter, r *http.Request) {
+	apiKey, err := auth.GetApiKey(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, fmt.Sprintf("auth error: %s", err.Error()))
+		return
+	}
+
+	user, err := cfg.DB.GetUserByApiKey(r.Context(), apiKey)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("couldn't get user", err.Error()))
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, user)
 }

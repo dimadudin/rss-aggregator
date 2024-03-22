@@ -13,6 +13,7 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(code)
 	_, err = w.Write(dat)

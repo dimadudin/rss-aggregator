@@ -30,6 +30,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /v1/users", cfg.handleCreateUser)
+	mux.HandleFunc("GET /v1/users", cfg.handleGetUser)
 	mux.HandleFunc("GET /v1/readiness", handleReady)
 	mux.HandleFunc("GET /v1/error", handleError)
 	corsMux := MwAddCors(mux)
