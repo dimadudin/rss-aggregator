@@ -38,6 +38,9 @@ func main() {
 	mux.Handle("POST /v1/feeds", cfg.mwAuth(cfg.handleCreateFeed))
 	mux.HandleFunc("GET /v1/feeds", cfg.handleGetFeeds)
 
+	mux.Handle("POST /v1/feed_follows", cfg.mwAuth(cfg.handleFollowFeed))
+	mux.Handle("DELETE /v1/feed_follows/{followID}", cfg.mwAuth(cfg.handleUnfollowFeed))
+
 	corsMux := mwAddCors(mux)
 
 	server := http.Server{Addr: ":" + port, Handler: corsMux}

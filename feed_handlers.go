@@ -49,5 +49,5 @@ func (cfg *config) handleGetFeeds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, databaseFeedsToFeeds(feeds))
+	respondWithJSON(w, http.StatusOK, databaseFeedsToFeeds(feeds))
 }
