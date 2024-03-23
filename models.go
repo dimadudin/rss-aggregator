@@ -88,27 +88,41 @@ func databaseFollowsToFollows(dbFollows []database.Follow) []Follow {
 	return follows
 }
 
-//
-// type Post struct {
-// 	ID          uuid.UUID `json:"id"`
-// 	CreatedAt   time.Time `json:"created_at"`
-// 	UpdatedAt   time.Time `json:"updated_at"`
-// 	Title       string    `json:"title"`
-// 	Url         string    `json:"url"`
-// 	Description *string   `json:"description"`
-// 	PublishedAt time.Time `json:"published_at"`
-// 	FeedID      uuid.UUID `json:"feed_id"`
-// }
-//
-// func databasePostToPost(dbPost database.Post) Post {
-// 	return Post{
-// 		ID:          dbPost.ID,
-// 		CreatedAt:   dbPost.CreatedAt,
-// 		UpdatedAt:   dbPost.UpdatedAt,
-// 		Title:       dbPost.Title,
-// 		Url:         dbPost.Url,
-// 		Description: &dbPost.Description.String,
-// 		PublishedAt: dbPost.PublishedAt,
-// 		FeedID:      dbPost.FeedID,
-// 	}
-// }
+type Post struct {
+	ID          uuid.UUID `json:"id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	Title       string    `json:"title"`
+	Url         string    `json:"url"`
+	Description *string   `json:"description"`
+	PublishedAt time.Time `json:"published_at"`
+	FeedID      uuid.UUID `json:"feed_id"`
+}
+
+func databasePostToPost(dbPost database.Post) Post {
+	var desc *string
+	if dbPost.Description.Valid {
+		desc = &dbPost.Description.String
+	} else {
+		desc = nil
+	}
+
+	return Post{
+		ID:          dbPost.ID,
+		CreatedAt:   dbPost.CreatedAt,
+		UpdatedAt:   dbPost.UpdatedAt,
+		Title:       dbPost.Title,
+		Url:         dbPost.Url,
+		Description: desc,
+		PublishedAt: dbPost.PublishedAt,
+		FeedID:      dbPost.FeedID,
+	}
+}
+
+func databasePostsToPosts(dbPosts []database.Post) []Post {
+	posts := make([]Post, 0, len(dbPosts))
+	for _, dbPost := range dbPosts {
+		posts = append(posts, databasePostToPost(dbPost))
+	}
+	return posts
+}
