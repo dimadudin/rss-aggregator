@@ -11,13 +11,13 @@ import (
 )
 
 func (cfg *config) handleCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
-	rParams := struct {
+	reqParams := struct {
 		Name string `json:"name"`
 		URL  string `json:"url"`
 	}{}
 
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&rParams)
+	err := decoder.Decode(&reqParams)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError,
 			fmt.Sprintf("error decoding JSON: %s", err.Error()))
@@ -28,8 +28,8 @@ func (cfg *config) handleCreateFeed(w http.ResponseWriter, r *http.Request, user
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
-		Name:      rParams.Name,
-		Url:       rParams.URL,
+		Name:      reqParams.Name,
+		Url:       reqParams.URL,
 		UserID:    user.ID,
 	})
 	if err != nil {
@@ -38,7 +38,27 @@ func (cfg *config) handleCreateFeed(w http.ResponseWriter, r *http.Request, user
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, databaseFeedToFeed(feed))
+	follow, err := cfg.DB.CreateFollow(r.Context(), database.CreateFollowParams{
+		ID:        uuid.New(),
+		UserID:    user.ID,
+		FeedID:    feed.ID,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError,
+			fmt.Sprintf("error following feed: %s", err.Error()))
+		return
+	}
+
+	respParams := struct {
+		FeedObj   Feed   `json:"feed"`
+		FollowObj Follow `json:"follow"`
+	}{
+		FeedObj:   databaseFeedToFeed(feed),
+		FollowObj: databaseFollowToFollow(follow),
+	}
+	respondWithJSON(w, http.StatusCreated, respParams)
 }
 
 func (cfg *config) handleGetFeeds(w http.ResponseWriter, r *http.Request) {
