@@ -39,8 +39,6 @@ func databaseFeedToFeed(dbFeed database.Feed) Feed {
 	var lastFetchedAtTime *time.Time
 	if dbFeed.LastFetchedAt.Valid {
 		lastFetchedAtTime = &dbFeed.LastFetchedAt.Time
-	} else {
-		lastFetchedAtTime = nil
 	}
 
 	return Feed{
@@ -103,8 +101,6 @@ func databasePostToPost(dbPost database.Post) Post {
 	var desc *string
 	if dbPost.Description.Valid {
 		desc = &dbPost.Description.String
-	} else {
-		desc = nil
 	}
 
 	return Post{
