@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/dimadudin/rss-aggregator/internal/database"
 	"github.com/joho/godotenv"
@@ -20,13 +21,15 @@ func main() {
 	port := os.Getenv("PORT")
 	dbURL := os.Getenv("CONN")
 
-	db, err := sql.Open("postgres", dbURL)
+	conn, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	dbQueries := database.New(db)
+	dbQueries := database.New(conn)
 	cfg := config{DB: dbQueries}
+
+	go startScraping(dbQueries, 10, time.Minute)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /v1/readiness", handleReady)
