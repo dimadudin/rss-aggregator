@@ -17,7 +17,11 @@ type config struct {
 }
 
 func main() {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("error loading environment")
+	}
+
 	port := os.Getenv("PORT")
 	dbURL := os.Getenv("CONN")
 
